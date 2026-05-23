@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Week 4 — ISP</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f9; padding: 24px; }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; max-width: 860px; margin: 0 auto; }
+  .card-header { background: #fafafa; border-bottom: 1px solid #e5e5e5; padding: 20px 24px; }
+  .roadmap-label { font-size: 11px; font-weight: 600; color: #999; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .topic-title { font-size: 22px; font-weight: 600; color: #111; margin-bottom: 4px; }
+  .topic-subtitle { font-size: 14px; color: #666; }
+  .tab-bar { display: flex; border-bottom: 1px solid #e5e5e5; background: #fff; overflow-x: auto; }
+  .tab-btn { padding: 10px 18px; font-size: 13px; font-weight: 500; color: #888; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+  .tab-btn:hover { color: #333; }
+  .tab-btn.active { color: #111; border-bottom-color: #111; }
+  .tab-content { padding: 24px; min-height: 400px; }
+  .section-title { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; margin-top: 24px; }
+  .section-title:first-child { margin-top: 0; }
+  p { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 10px; }
+  .highlight-box { background: #fafafa; border-left: 3px solid; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 10px 0; font-size: 13px; line-height: 1.6; color: #555; }
+  .highlight-box.info  { border-color: #3b82f6; }
+  .highlight-box.warn  { border-color: #f59e0b; }
+  .highlight-box.danger{ border-color: #ef4444; }
+  .highlight-box.success{ border-color: #22c55e; }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .compare-card { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 14px; }
+  .compare-card ul { padding-left: 16px; font-size: 13px; color: #555; line-height: 1.8; }
+  .version-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-bottom: 10px; display: inline-block; }
+  .badge-bad { background: #fee2e2; color: #991b1b; }
+  .badge-good { background: #dcfce7; color: #166534; }
+  pre { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 12px; color: #222; overflow-x: auto; margin: 10px 0; line-height: 1.6; white-space: pre; }
+  .code-label { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; margin-top: 14px; }
+  .resource-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+  .resource-row:last-child { border-bottom: none; }
+  .resource-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .resource-info { flex: 1; }
+  .resource-title { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 2px; }
+  .resource-desc { font-size: 12px; color: #666; line-height: 1.5; }
+  .resource-tag { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+  .tag-free { background: #dcfce7; color: #166534; }
+  .tag-primary { background: #dbeafe; color: #1e40af; }
+  .diff-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  .diff-table th { text-align: left; padding: 8px 12px; background: #fafafa; color: #666; font-weight: 600; border: 1px solid #e5e5e5; }
+  .diff-table td { padding: 8px 12px; border: 1px solid #e5e5e5; color: #555; vertical-align: top; line-height: 1.5; }
+  .diff-table tr:nth-child(even) td { background: #fafafa; }
+  .self-test-q { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+  .self-test-q .q-text { font-size: 13px; color: #111; margin-bottom: 8px; font-weight: 600; }
+  .reveal-btn { font-size: 12px; color: #888; background: none; border: 1px solid #e5e5e5; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  .answer { display: none; font-size: 12px; color: #555; line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e5e5; }
+  .checklist-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; color: #555; line-height: 1.5; }
+  .checklist-item:last-child { border-bottom: none; }
+  .checkbox { width: 16px; height: 16px; border: 1.5px solid #ccc; border-radius: 4px; flex-shrink: 0; margin-top: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+  .checkbox.checked { background: #111; border-color: #111; }
+  .checkbox.checked::after { content: ''; width: 8px; height: 5px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translateY(-1px); display: block; }
+  .action-btn { background: none; border: 1px solid #ccc; border-radius: 6px; padding: 8px 14px; font-size: 13px; color: #333; cursor: pointer; margin-top: 10px; margin-right: 6px; }
+  .action-btn:hover { background: #f5f5f5; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-header">
+    <div class="roadmap-label">Q1 STUDY ROADMAP — BLOCK 1 — WEEK 4 OF 13</div>
+    <div class="topic-title">Interface Segregation Principle (ISP)</div>
+    <div class="topic-subtitle">No client should be forced to depend on methods it does not use.</div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('concept', this)">Concept</button>
+    <button class="tab-btn" onclick="switchTab('code', this)">Code Examples</button>
+    <button class="tab-btn" onclick="switchTab('important', this)">Important Extras</button>
+    <button class="tab-btn" onclick="switchTab('resources', this)">Resources</button>
+    <button class="tab-btn" onclick="switchTab('exercise', this)">Exercise</button>
+    <button class="tab-btn" onclick="switchTab('selftest', this)">Self-Test</button>
+    <button class="tab-btn" onclick="switchTab('checklist', this)">Checklist</button>
+  </div>
+  <div class="tab-content">
+
+    <!-- CONCEPT -->
+    <div id="concept">
+      <p class="section-title">What is ISP?</p>
+      <p>The Interface Segregation Principle states that a class should never be forced to implement an interface it doesn't fully use. Instead of one large, general-purpose interface, you should define multiple smaller, focused interfaces — each representing a specific capability or contract.</p>
+      <p>Robert Martin coined it as a response to "fat interfaces" — interfaces that bundle unrelated methods together, forcing implementors to provide empty or fake implementations for methods they don't need.</p>
+
+      <p class="section-title">The Mental Model</p>
+      <div class="highlight-box info">
+        Think of ISP like a job description. A focused job description says exactly what this role does — "Processes payments". A bloated one says "Processes payments, sends emails, generates reports, manages users, and handles infrastructure". The second kind forces every hire to pretend they're qualified for everything, even if they only needed one skill.
+      </div>
+
+      <p class="section-title">Why it matters at Senior / Architect level</p>
+      <p>At a senior level, ISP is not just about clean interfaces — it's about how you design <strong>module boundaries</strong>. Violating ISP creates rigid coupling: a change in one unrelated method forces recompilation or retesting of components that have nothing to do with that change.</p>
+      <p>In your current environment, ISP appears directly in <strong>Hexagonal Architecture</strong>: each port (interface) should represent exactly one capability, not a bundle of everything the outside world might want to do with your domain. A violation here bleeds across the boundary and defeats the isolation Hexagonal Architecture is designed to provide.</p>
+
+      <p class="section-title">ISP vs SRP — the key distinction</p>
+      <table class="diff-table">
+        <thead>
+          <tr>
+            <th>Principle</th>
+            <th>Applies to</th>
+            <th>Core question</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>SRP</strong></td>
+            <td>Classes / modules</td>
+            <td>Does this class do too many things?</td>
+          </tr>
+          <tr>
+            <td><strong>ISP</strong></td>
+            <td>Interfaces / contracts</td>
+            <td>Does this interface demand too many capabilities from its implementors?</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>They often appear together: a fat class usually has a fat interface. But fixing the interface (ISP) doesn't automatically fix the class (SRP), and vice versa.</p>
+    </div>
+
+    <!-- CODE EXAMPLES -->
+    <div id="code" style="display:none">
+      <p class="section-title">Violation — Fat interface forces empty implementations</p>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <span class="version-badge badge-bad">❌ ISP Violated</span>
+          <div class="code-label">NotificationService.java</div>
+<pre>public interface NotificationService {
+    void sendEmail(String to, String subject, String body);
+    void sendSms(String phone, String message);
+    void sendPushNotification(String deviceToken, String payload);
+    void sendSlackMessage(String channel, String text);
+}</pre>
+          <div class="code-label">EmailOnlyNotifier.java</div>
+<pre>public class EmailOnlyNotifier implements NotificationService {
+
+    @Override
+    public void sendEmail(String to, String subject, String body) {
+        // Real implementation
+    }
+
+    @Override
+    public void sendSms(String phone, String message) {
+        throw new UnsupportedOperationException("SMS not supported");
+    }
+
+    @Override
+    public void sendPushNotification(String deviceToken, String payload) {
+        throw new UnsupportedOperationException("Push not supported");
+    }
+
+    @Override
+    public void sendSlackMessage(String channel, String text) {
+        throw new UnsupportedOperationException("Slack not supported");
+    }
+}</pre>
+        </div>
+        <div class="compare-card">
+          <span class="version-badge badge-good">✅ ISP Applied</span>
+          <div class="code-label">Segregated interfaces</div>
+<pre>public interface EmailSender {
+    void sendEmail(String to, String subject, String body);
+}
+
+public interface SmsSender {
+    void sendSms(String phone, String message);
+}
+
+public interface PushSender {
+    void sendPushNotification(String deviceToken, String payload);
+}
+
+public interface SlackSender {
+    void sendSlackMessage(String channel, String text);
+}</pre>
+          <div class="code-label">EmailOnlyNotifier.java</div>
+<pre>public class EmailOnlyNotifier implements EmailSender {
+
+    @Override
+    public void sendEmail(String to, String subject, String body) {
+        // Clean, focused implementation — nothing else required
+    }
+}
+</pre>
+        </div>
+      </div>
+
+      <p class="section-title">Composing multiple capabilities when needed</p>
+      <p>ISP doesn't mean a class can't implement multiple interfaces. It means each interface stays focused. A class that genuinely does email + SMS can implement both without being forced into everything else.</p>
+      <div class="code-label">FullChannelNotifier.java — implements only what it supports</div>
+<pre>public class FullChannelNotifier implements EmailSender, SmsSender {
+
+    @Override
+    public void sendEmail(String to, String subject, String body) {
+        // email logic
+    }
+
+    @Override
+    public void sendSms(String phone, String message) {
+        // SMS logic
+    }
+}
+</pre>
+
+      <p class="section-title">ISP in Hexagonal Architecture — Port design</p>
+      <div class="code-label">OrderPort.java — fat port (violation)</div>
+<pre>// Too broad — a single port that owns all order operations
+public interface OrderPort {
+    Order createOrder(OrderRequest request);
+    void cancelOrder(String orderId);
+    OrderStatus getOrderStatus(String orderId);
+    List&lt;Order&gt; getOrderHistory(String customerId);
+    void updateShippingAddress(String orderId, Address address);
+    byte[] generateOrderPdf(String orderId);
+}</pre>
+
+      <div class="code-label">Segregated ports — clean hexagonal boundary</div>
+<pre>public interface OrderCreationPort {
+    Order createOrder(OrderRequest request);
+}
+
+public interface OrderQueryPort {
+    OrderStatus getOrderStatus(String orderId);
+    List&lt;Order&gt; getOrderHistory(String customerId);
+}
+
+public interface OrderManagementPort {
+    void cancelOrder(String orderId);
+    void updateShippingAddress(String orderId, Address address);
+}
+
+public interface OrderDocumentPort {
+    byte[] generateOrderPdf(String orderId);
+}</pre>
+      <div class="highlight-box success">
+        Each adapter (REST controller, Kafka consumer, batch job) now only depends on the port it actually uses. A Kafka consumer that cancels orders only depends on <code>OrderManagementPort</code> — it never sees query or document methods.
+      </div>
+    </div>
+
+    <!-- IMPORTANT EXTRAS -->
+    <div id="important" style="display:none">
+      <p class="section-title">Traps and senior-level insights</p>
+
+      <div class="highlight-box warn">
+        <strong>1. Splitting too far is also wrong.</strong> ISP doesn't mean one method per interface. If methods are always used together and always by the same clients, they belong in the same interface. Over-segregation creates an explosion of tiny interfaces that are harder to navigate than a single focused one.
+      </div>
+
+      <div class="highlight-box danger">
+        <strong>2. <code>UnsupportedOperationException</code> is a red flag, not a solution.</strong> If you see this in a production codebase, it almost always signals an ISP violation. The implementor was forced into an interface that doesn't fit. This is dangerous because the violation isn't visible at compile time — it only blows up at runtime.
+      </div>
+
+      <div class="highlight-box info">
+        <strong>3. ISP applies to more than interfaces.</strong> In modern Java, this also applies to abstract classes, generic base classes, and even Spring service beans that expose too many methods. If a bean has 15 public methods and different callers only use 2–3 each, you have an ISP smell worth decomposing.
+      </div>
+
+      <div class="highlight-box info">
+        <strong>4. ISP and testing.</strong> Fat interfaces make mocking painful. In Mockito, mocking a 12-method interface to test a class that only uses 2 of them creates noise and fragility. Segregated interfaces produce smaller, clearer test doubles. If your test setup feels verbose, check whether the interface is too fat.
+      </div>
+
+      <div class="highlight-box success">
+        <strong>5. The connection to Dependency Inversion (next week).</strong> ISP sets up DIP naturally. When you have focused interfaces, it's easy to inject exactly the capability you need and swap implementations. Fat interfaces make DIP harder because the injected dependency brings unwanted methods with it.
+      </div>
+    </div>
+
+    <!-- RESOURCES -->
+    <div id="resources" style="display:none">
+      <p class="section-title">Primary resource</p>
+      <div class="resource-row">
+        <div class="resource-icon" style="background:#dbeafe">🎓</div>
+        <div class="resource-info">
+          <div class="resource-title">Java Design Patterns and SOLID Principles — Udemy Business <span class="resource-tag tag-primary">Primary</span></div>
+          <div class="resource-desc">If you are using the consolidated SOLID course recommended in Week 1, go directly to the ISP module. Do not start a new course — reuse the same one. This keeps your certificate on track and avoids fragmentation.</div>
+        </div>
+      </div>
+
+      <p class="section-title">Free reading</p>
+      <div class="resource-row">
+        <div class="resource-icon" style="background:#dcfce7">📖</div>
+        <div class="resource-info">
+          <div class="resource-title">refactoring.guru — Interface Segregation Principle <span class="resource-tag tag-free">Free</span></div>
+          <div class="resource-desc">Clear explanation with diagrams. Read after the video to solidify the mental model. Focus on the "How to fix it" section — it maps well to your hexagonal architecture context. URL: https://refactoring.guru/design-principles/interface-segregation</div>
+        </div>
+      </div>
+      <div class="resource-row">
+        <div class="resource-icon" style="background:#dcfce7">📖</div>
+        <div class="resource-info">
+          <div class="resource-title">Baeldung — Interface Segregation Principle in Java <span class="resource-tag tag-free">Free</span></div>
+          <div class="resource-desc">Java-specific examples with Spring context. Especially useful for understanding how ISP appears in service layer design. URL: https://www.baeldung.com/java-interface-segregation</div>
+        </div>
+      </div>
+
+      <p class="section-title">Supplementary</p>
+      <div class="resource-row">
+        <div class="resource-icon" style="background:#f3f4f6">▶️</div>
+        <div class="resource-info">
+          <div class="resource-title">Amigoscode — SOLID Principles in Java (YouTube) <span class="resource-tag tag-free">Free</span></div>
+          <div class="resource-desc">Only watch the ISP segment if you want a visual walkthrough to complement the reading. Skip if the Udemy module already gave you the mental model — don't repeat the same content in a different format just to check a box.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCISE -->
+    <div id="exercise" style="display:none">
+      <p class="section-title">Your task this week</p>
+      <p>Below is a fictional backend service for a payment processing platform. There is a design problem embedded in the code. Read it carefully, identify the problem independently, refactor it, then share your refactored version for review.</p>
+      <p><strong>Do not look for hints in the tab labels or section titles.</strong> The goal is for you to spot the issue on your own — that's the skill being trained.</p>
+
+      <div class="code-label">PaymentProcessor.java</div>
+<pre>public interface PaymentProcessor {
+    void processCardPayment(String cardToken, BigDecimal amount);
+    void processPixPayment(String pixKey, BigDecimal amount);
+    void processBoletoPayment(String cpf, BigDecimal amount);
+    void refundCardPayment(String transactionId, BigDecimal amount);
+    void refundPixPayment(String transactionId);
+    PaymentStatus getCardPaymentStatus(String transactionId);
+    PaymentStatus getPixPaymentStatus(String transactionId);
+    PaymentStatus getBoletoPaymentStatus(String transactionId);
+    void generateBoletoPdf(String transactionId, OutputStream out);
+}</pre>
+
+      <div class="code-label">CardPaymentAdapter.java</div>
+<pre>public class CardPaymentAdapter implements PaymentProcessor {
+
+    @Override
+    public void processCardPayment(String cardToken, BigDecimal amount) {
+        // Calls Stripe API
+    }
+
+    @Override
+    public void processPixPayment(String pixKey, BigDecimal amount) {
+        throw new UnsupportedOperationException("Not a PIX processor");
+    }
+
+    @Override
+    public void processBoletoPayment(String cpf, BigDecimal amount) {
+        throw new UnsupportedOperationException("Not a Boleto processor");
+    }
+
+    @Override
+    public void refundCardPayment(String transactionId, BigDecimal amount) {
+        // Calls Stripe refund API
+    }
+
+    @Override
+    public void refundPixPayment(String transactionId) {
+        throw new UnsupportedOperationException("Not a PIX processor");
+    }
+
+    @Override
+    public PaymentStatus getCardPaymentStatus(String transactionId) {
+        return PaymentStatus.APPROVED; // simplified
+    }
+
+    @Override
+    public PaymentStatus getPixPaymentStatus(String transactionId) {
+        throw new UnsupportedOperationException("Not a PIX processor");
+    }
+
+    @Override
+    public PaymentStatus getBoletoPaymentStatus(String transactionId) {
+        throw new UnsupportedOperationException("Not a Boleto processor");
+    }
+
+    @Override
+    public void generateBoletoPdf(String transactionId, OutputStream out) {
+        throw new UnsupportedOperationException("Not a Boleto processor");
+    }
+}</pre>
+
+      <div class="highlight-box info">
+        <strong>Cycle:</strong> Identify the violation → Refactor the code → Share your version below → Push the final version to <code>java-study-roadmap/Q1/week-04/</code>
+      </div>
+
+      <button class="action-btn" onclick="sendPrompt('Here is my refactored version of the ISP exercise (Week 4):')">
+        📤 Submit my refactored version for review
+      </button>
+    </div>
+
+    <!-- SELF-TEST -->
+    <div id="selftest" style="display:none">
+      <p class="section-title">Check your understanding</p>
+
+      <div class="self-test-q">
+        <p class="q-text">1. In one sentence: what does the Interface Segregation Principle prohibit?</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">ISP prohibits forcing a class to implement methods it does not use — that is, defining interfaces that are broader than any single client's actual needs.</div>
+      </div>
+
+      <div class="self-test-q">
+        <p class="q-text">2. What runtime symptom is almost always a sign of an ISP violation in Java?</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer"><code>UnsupportedOperationException</code> thrown from interface implementations. It means the implementor was forced into a contract it doesn't actually support.</div>
+      </div>
+
+      <div class="self-test-q">
+        <p class="q-text">3. How does ISP relate to Hexagonal Architecture specifically?</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">In Hexagonal Architecture, each port is an interface representing a boundary capability. A fat port that bundles multiple unrelated capabilities forces every adapter (REST, Kafka, batch) to depend on methods it doesn't use — breaking the isolation the architecture is meant to provide. ISP keeps ports focused, so each adapter depends only on the capability it actually needs.</div>
+      </div>
+
+      <div class="self-test-q">
+        <p class="q-text">4. ISP says "split interfaces". Does that mean every method should have its own interface? Why or why not?</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">No. Over-segregation creates as many problems as fat interfaces — it fragments cohesion and makes the codebase hard to navigate. The right granularity is determined by client need: methods that are always used together by the same clients belong in the same interface. Split only when different clients need different subsets.</div>
+      </div>
+
+      <div class="self-test-q">
+        <p class="q-text">5. How does ISP affect unit testing with Mockito?</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">Fat interfaces force you to mock methods the class under test never calls, adding noise and fragility. Segregated interfaces produce smaller mocks that only cover the actual dependency, making tests cleaner and easier to read.</div>
+      </div>
+
+      <div class="self-test-q">
+        <p class="q-text">6. What is the key conceptual difference between SRP and ISP?</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">SRP applies to classes and modules — it asks whether a class has too many responsibilities. ISP applies to interfaces and contracts — it asks whether an interface demands too many capabilities from its implementors. A class can violate SRP without violating ISP, and vice versa, though they often appear together.</div>
+      </div>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div id="checklist" style="display:none">
+      <p class="section-title">Week 4 completion checklist</p>
+
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Watched the ISP module in your Udemy Business SOLID course</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Read the refactoring.guru ISP article — focused on the "How to fix it" section</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Read the Baeldung ISP article — noted how it appears in Spring service design</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Can explain ISP in one sentence without looking at notes</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Can name the runtime symptom that signals an ISP violation</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Identified the violation in the PaymentProcessor exercise independently</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Refactored the exercise code and submitted for review</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Pushed final version to <code>java-study-roadmap/Q1/week-04/</code> on GitHub</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Passed all 6 self-test questions without revealing the answer first</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>📣 Published your Week 4 LinkedIn post — framed as insight, not as "I learned ISP this week"</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content > div').forEach(d => d.style.display = 'none');
+  btn.classList.add('active');
+  document.getElementById(name).style.display = 'block';
+}
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+}
+function toggleAnswer(btn) {
+  const answer = btn.nextElementSibling;
+  if (answer.style.display === 'block') {
+    answer.style.display = 'none';
+    btn.textContent = 'Reveal answer';
+  } else {
+    answer.style.display = 'block';
+    btn.textContent = 'Hide answer';
+  }
+}
+function sendPrompt(text) {
+  alert('Copy this to the chat: ' + text);
+}
+</script>
+</body>
+</html>
