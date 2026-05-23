@@ -31,7 +31,7 @@
   .version-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-bottom: 10px; display: inline-block; }
   .badge-bad { background: #3b0000; color: #f87171; }
   .badge-good { background: #052e16; color: #4ade80; }
-  pre { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 12px; color: #e5e5e5; overflow-x: auto; margin: 10px 0; line-height: 1.6; white-space: pre; }
+  pre { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 12px; color: #e5e5e5; overflow-x: auto; margin: 10px 0; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
   .code-label { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; margin-top: 14px; }
   .resource-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #2a2a2a; }
   .resource-row:last-child { border-bottom: none; }
@@ -492,6 +492,20 @@ function toggleAnswer(btn) {
 function sendPrompt(text) {
   alert('Copy this to the chat: ' + text);
 }
+const resizeObserver = new ResizeObserver(entries => {
+  for (let entry of entries) {
+    const width = entry.contentRect.width;
+    document.querySelectorAll('.compare-grid').forEach(grid => {
+      if (width < 600) {
+        grid.style.gridTemplateColumns = '1fr';
+      } else {
+        grid.style.gridTemplateColumns = '1fr 1fr';
+      }
+    });
+  }
+});
+
+resizeObserver.observe(document.querySelector('.card'));
 </script>
 </body>
 </html>
