@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Week 6 — KISS, DRY &amp; YAGNI | Q1 Study Roadmap</title>
+  <style>
+    /* ── Forced dark theme tokens ── */
+    :root {
+      --color-background-primary:   #111111;
+      --color-background-secondary: #1a1a1a;
+      --color-text-primary:         #ffffff;
+      --color-text-secondary:       #aaaaaa;
+      --color-text-tertiary:        #555555;
+      --color-border-tertiary:      #2a2a2a;
+      --color-border-secondary:     #444444;
+      --border-radius-lg:           12px;
+      --border-radius-md:           8px;
+      --font-mono:                  'Courier New', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #000; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    body { display: flex; justify-content: center; align-items: flex-start; padding: 32px 16px; }
+    .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; width: 100%; max-width: 820px; }
+    .card-header { background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 1.25rem 1.5rem; }
+    .roadmap-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+    .topic-title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+    .topic-subtitle { font-size: 14px; color: var(--color-text-secondary); }
+    .tab-bar { display: flex; border-bottom: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); overflow-x: auto; }
+    .tab-btn { padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--color-text-secondary); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; transition: color 0.15s; }
+    .tab-btn:hover { color: var(--color-text-primary); }
+    .tab-btn.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); }
+    .tab-content { padding: 1.5rem; min-height: 400px; }
+    .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; margin-top: 1.5rem; }
+    .section-title:first-child { margin-top: 0; }
+    p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; margin-bottom: 10px; }
+    .highlight-box { background: var(--color-background-secondary); border-left: 3px solid; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 12px 16px; margin: 10px 0; font-size: 13px; line-height: 1.6; color: var(--color-text-secondary); }
+    .highlight-box.info    { border-color: #378ADD; }
+    .highlight-box.warn    { border-color: #EF9F27; }
+    .highlight-box.success { border-color: #639922; }
+    .highlight-box.danger  { border-color: #E24B4A; }
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    @media (max-width: 600px) { .compare-grid { grid-template-columns: 1fr; } }
+    .compare-card { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 14px; }
+    .compare-card .version-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; margin-bottom: 10px; display: inline-block; }
+    .badge-bad  { background: #2e0a0a; color: #f87171; }
+    .badge-good { background: #0a2e22; color: #5dd3a8; }
+    .compare-card ul { padding-left: 16px; font-size: 13px; color: var(--color-text-secondary); line-height: 1.8; }
+    pre { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 14px 16px; font-family: var(--font-mono); font-size: 12px; color: var(--color-text-primary); overflow-x: auto; margin: 10px 0; line-height: 1.6; white-space: pre; }
+    .code-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; margin-top: 14px; }
+    .resource-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+    .resource-row:last-child { border-bottom: none; }
+    .resource-icon { width: 32px; height: 32px; border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); }
+    .resource-info { flex: 1; }
+    .resource-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+    .resource-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+    .resource-tag { font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+    .tag-free    { background: #052e16; color: #4ade80; }
+    .tag-primary { background: #0c2340; color: #7dbef5; }
+    .checklist-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; }
+    .checklist-item:last-child { border-bottom: none; }
+    .checkbox { width: 16px; height: 16px; border: 1.5px solid var(--color-border-secondary); border-radius: 4px; flex-shrink: 0; margin-top: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .checkbox.checked { background: var(--color-text-primary); border-color: var(--color-text-primary); }
+    .checkbox.checked::after { content: ''; width: 8px; height: 5px; border-left: 2px solid var(--color-background-primary); border-bottom: 2px solid var(--color-background-primary); transform: rotate(-45deg) translateY(-1px); display: block; }
+    .self-test-q { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 14px 16px; margin-bottom: 10px; }
+    .self-test-q p { font-size: 13px; color: var(--color-text-primary); margin-bottom: 8px; font-weight: 500; }
+    .reveal-btn { font-size: 12px; color: var(--color-text-tertiary); background: none; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 4px 10px; cursor: pointer; }
+    .answer { display: none; font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--color-border-tertiary); }
+    .action-btn { background: none; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 8px 14px; font-size: 13px; color: var(--color-text-primary); cursor: pointer; margin-top: 10px; margin-right: 6px; }
+    .action-btn:hover { background: var(--color-background-secondary); }
+    .important-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 4px; background: #3b1a00; color: #f59e0b; margin-left: 6px; vertical-align: middle; }
+    .diff-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+    .diff-table th { text-align: left; padding: 8px 12px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-weight: 500; border: 0.5px solid var(--color-border-tertiary); }
+    .diff-table td { padding: 8px 12px; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); vertical-align: top; line-height: 1.5; }
+    .diff-table tr:nth-child(even) td { background: var(--color-background-secondary); }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="card-header">
+    <div class="roadmap-label">Q1 Study Roadmap — Block 2 — Week 6 of 13</div>
+    <div class="topic-title">KISS, DRY &amp; YAGNI</div>
+    <div class="topic-subtitle">Write code that does exactly what it needs to — nothing more, nothing less.</div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active"     onclick="switchTab('concept', this)">Concept</button>
+    <button class="tab-btn"            onclick="switchTab('code', this)">Code Examples</button>
+    <button class="tab-btn"            onclick="switchTab('important', this)">Important Extras</button>
+    <button class="tab-btn"            onclick="switchTab('resources', this)">Resources</button>
+    <button class="tab-btn"            onclick="switchTab('exercise', this)">Exercise</button>
+    <button class="tab-btn"            onclick="switchTab('selftest', this)">Self-Test</button>
+    <button class="tab-btn"            onclick="switchTab('checklist', this)">Checklist</button>
+  </div>
+
+  <!-- TAB PANELS -->
+  <div class="tab-content" id="tab-panel">
+
+    <!-- ═══════════════════════════════ CONCEPT ═══════════════════════════════ -->
+    <div id="concept">
+
+      <div class="highlight-box info">
+        Welcome to Block 2 — Clean Code Principles. You have just finished five weeks on SOLID. This block is about the habits that surround those principles: how you name things, how much complexity you allow, and how aggressively you cut what is not needed. These are not rules — they are intuitions to build. By the end of Week 7 you should be applying them without thinking.
+      </div>
+
+      <div class="section-title">The Three Principles</div>
+      <p>KISS, DRY, and YAGNI are often listed together as if they were one idea. They are not. Each targets a different failure mode in how developers write code. Understanding them separately is what allows you to apply them together.</p>
+
+      <table class="diff-table">
+        <thead>
+          <tr>
+            <th>Principle</th>
+            <th>Full Name</th>
+            <th>The failure it targets</th>
+            <th>The question it asks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color:#fff">KISS</strong></td>
+            <td>Keep It Simple, Stupid</td>
+            <td>Accidental complexity — code that is harder to read than the problem it solves</td>
+            <td>Can a developer who did not write this understand it in 30 seconds?</td>
+          </tr>
+          <tr>
+            <td><strong style="color:#fff">DRY</strong></td>
+            <td>Don't Repeat Yourself</td>
+            <td>Knowledge duplication — the same business rule or logic living in more than one place</td>
+            <td>If this rule changes, how many places do I have to update?</td>
+          </tr>
+          <tr>
+            <td><strong style="color:#fff">YAGNI</strong></td>
+            <td>You Aren't Gonna Need It</td>
+            <td>Speculative generality — building for requirements that do not exist yet</td>
+            <td>Does a current, real requirement justify this code existing?</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-title">KISS — Keep It Simple, Stupid</div>
+      <p>Complexity is not the same as sophistication. Complexity is what happens when you solve a simple problem with more moving parts than necessary — nested conditionals, clever one-liners, chains of lambdas, deep inheritance trees. Sophistication is solving a genuinely hard problem in the clearest way possible.</p>
+      <p>The KISS test is about the next person, not you. You already understand your own code when you write it. KISS asks whether someone who has never seen it can understand it without asking you questions. At a senior level this matters more than ever: your code will be read in code reviews, maintained by teammates, and debugged under pressure at 11pm by someone who is not you.</p>
+      <div class="highlight-box warn">
+        <strong>The complexity trap:</strong> Many developers equate complex code with skilled code. Stream chains with five intermediate operations, method references where a simple loop would do, ternary operators nested three deep — these signal effort, not quality. At a Tech Lead level, you will eventually need to reverse someone else's "clever" code. The skill is knowing when simple is actually the harder choice.
+      </div>
+
+      <div class="section-title">DRY — Don't Repeat Yourself</div>
+      <p>DRY is widely misunderstood as "no duplicate lines of code." That is not what it means. The original definition from <em>The Pragmatic Programmer</em> is: <em>every piece of knowledge must have a single, authoritative representation in the system.</em></p>
+      <p>The word <strong>knowledge</strong> is what matters. Two methods that happen to contain the same three lines of code are not necessarily a DRY violation — they might represent different business concepts that happen to look the same today. Merging them into a shared utility would couple two unrelated concerns. That is worse than the duplication.</p>
+      <p>A real DRY violation is when the same business rule — for example, "an order is eligible for a discount if its total exceeds R$200" — is hardcoded in three different services. If that threshold changes to R$250, you have three places to update, three chances to miss one, three potential bugs in production.</p>
+      <div class="highlight-box info">
+        <strong>DRY in Hexagonal Architecture:</strong> Your ports are the authoritative source of truth for input/output contracts. If you find yourself duplicating validation logic between an inbound adapter (REST controller) and an application service, that is a DRY violation — the rule should live in the domain, not in two adapters independently.
+      </div>
+
+      <div class="section-title">YAGNI — You Aren't Gonna Need It</div>
+      <p>YAGNI is an Extreme Programming principle that answers a very specific temptation: building features, abstractions, or extension points for future requirements that have not been asked for yet.</p>
+      <p>The reasoning goes: requirements change. The feature you build today for "what we might need in six months" will almost certainly not match what is actually needed in six months. You will have paid the cost of building and maintaining it, and then pay again to change it. The correct response to a hypothetical future need is to write code that is easy to change, not code that pre-emptively handles every scenario.</p>
+      <div class="highlight-box warn">
+        <strong>YAGNI in architecture:</strong> This principle applies beyond code. Adding Kafka to a system "because we might need async messaging later" when all current requirements are synchronous is a YAGNI violation at the infrastructure level. It creates operational cost, deployment complexity, and a learning curve — for requirements that may never materialize.
+      </div>
+
+      <div class="section-title">How the three interact</div>
+      <p>Applied together, these principles create a specific discipline:</p>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <span class="version-badge badge-bad">Danger zone</span>
+          <ul>
+            <li>DRY without YAGNI → over-abstraction for hypothetical reuse</li>
+            <li>KISS without DRY → copy-paste sprawl, knowledge split everywhere</li>
+            <li>YAGNI without KISS → minimal features but tangled, unreadable code</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <span class="version-badge badge-good">Balanced</span>
+          <ul>
+            <li>Extract a shared abstraction only when duplication is real and the concept is stable</li>
+            <li>Build only what is asked; make the code easy to extend when the need arrives</li>
+            <li>Prefer readable code over clever code; simple structure over elegant machinery</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════ CODE EXAMPLES ═══════════════════════════════ -->
+    <div id="code" style="display:none">
+
+      <p style="margin-bottom:16px">All examples are from a fictional <code style="font-size:12px;color:#aaa">OrderProcessingService</code> in an enterprise backend context.</p>
+
+      <!-- KISS -->
+      <div class="section-title">KISS — Accidental Complexity</div>
+
+      <div class="code-label">❌ KISS Violation — clever but unreadable</div>
+      <pre>// What does this actually do?
+public Map&lt;String, List&lt;Order&gt;&gt; groupOrders(List&lt;Order&gt; orders) {
+    return orders.stream()
+        .filter(o -&gt; o.getStatus() != null)
+        .collect(Collectors.groupingBy(
+            o -&gt; Optional.ofNullable(o.getCustomer())
+                         .map(Customer::getRegion)
+                         .orElse("UNKNOWN"),
+            Collectors.filtering(
+                o -&gt; o.getTotal().compareTo(BigDecimal.ZERO) &gt; 0,
+                Collectors.toList()
+            )
+        ));
+}</pre>
+
+      <div class="code-label">✅ KISS Applied — clear intent, same result</div>
+      <pre>public Map&lt;String, List&lt;Order&gt;&gt; groupOrdersByRegion(List&lt;Order&gt; orders) {
+    Map&lt;String, List&lt;Order&gt;&gt; result = new HashMap&lt;&gt;();
+
+    for (Order order : orders) {
+        if (order.getStatus() == null) continue;
+        if (order.getTotal().compareTo(BigDecimal.ZERO) &lt;= 0) continue;
+
+        String region = resolveRegion(order);
+        result.computeIfAbsent(region, k -&gt; new ArrayList&lt;&gt;()).add(order);
+    }
+
+    return result;
+}
+
+private String resolveRegion(Order order) {
+    if (order.getCustomer() == null) return "UNKNOWN";
+    return order.getCustomer().getRegion();
+}</pre>
+
+      <div class="highlight-box info" style="margin-top:4px">The second version is longer in line count but shorter in cognitive cost. Every step is explicit. A new team member can follow it without decoding the stream API chain.</div>
+
+      <!-- DRY -->
+      <div class="section-title" style="margin-top:24px">DRY — Knowledge Duplication</div>
+
+      <div class="code-label">❌ DRY Violation — same business rule in two places</div>
+      <pre>// In OrderService
+public void applyDiscount(Order order) {
+    if (order.getTotal().compareTo(new BigDecimal("200.00")) &gt; 0) {
+        order.applyDiscountPercent(10);
+    }
+}
+
+// In InvoiceService (weeks later, copy-pasted by another developer)
+public BigDecimal calculateFinalAmount(Order order) {
+    BigDecimal total = order.getTotal();
+    if (total.compareTo(new BigDecimal("200.00")) &gt; 0) {
+        total = total.multiply(new BigDecimal("0.90"));
+    }
+    return total;
+}</pre>
+
+      <div class="code-label">✅ DRY Applied — the rule lives in one place</div>
+      <pre>// Domain rule — single authoritative source
+public class DiscountPolicy {
+
+    private static final BigDecimal DISCOUNT_THRESHOLD = new BigDecimal("200.00");
+    private static final int        DISCOUNT_PERCENT   = 10;
+
+    public boolean isEligible(Order order) {
+        return order.getTotal().compareTo(DISCOUNT_THRESHOLD) &gt; 0;
+    }
+
+    public BigDecimal apply(BigDecimal amount) {
+        BigDecimal factor = BigDecimal.ONE
+            .subtract(new BigDecimal(DISCOUNT_PERCENT).divide(new BigDecimal("100")));
+        return amount.multiply(factor);
+    }
+}
+
+// Both services now delegate to DiscountPolicy — one place to change
+public void applyDiscount(Order order) {
+    if (discountPolicy.isEligible(order)) {
+        order.applyDiscountPercent(10);
+    }
+}
+
+public BigDecimal calculateFinalAmount(Order order) {
+    BigDecimal total = order.getTotal();
+    return discountPolicy.isEligible(order)
+        ? discountPolicy.apply(total)
+        : total;
+}</pre>
+
+      <!-- YAGNI -->
+      <div class="section-title" style="margin-top:24px">YAGNI — Speculative Generality</div>
+
+      <div class="code-label">❌ YAGNI Violation — built for requirements that do not exist</div>
+      <pre>// Current requirement: process credit card payments only.
+// Developer decided to "future-proof" the service.
+
+public class PaymentService {
+
+    public void processCreditCard(PaymentRequest request) { /* real code */ }
+
+    // Nobody asked for these. They are not in any ticket. They are not tested.
+    public void processDebitCard(PaymentRequest request) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    public void processBoleto(PaymentRequest request) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    public void processPix(PaymentRequest request) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    public void processCrypto(PaymentRequest request) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    public void schedulePaymentForFutureDate(PaymentRequest request, LocalDate date) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+}</pre>
+
+      <div class="code-label">✅ YAGNI Applied — only what is needed today</div>
+      <pre>// Clean, focused, honest about what it does.
+// When Pix is required, we add it then — with a real requirement,
+// real tests, and full understanding of the integration.
+
+public class PaymentService {
+
+    public void processCreditCard(PaymentRequest request) {
+        // validate, charge, persist, emit event
+    }
+}</pre>
+
+      <div class="highlight-box success" style="margin-top:4px">YAGNI does not mean "write inflexible code." It means: write code that is easy to extend when the real need arrives, instead of pre-building the extension for a need that may never arrive.</div>
+
+    </div>
+
+    <!-- ═══════════════════════════════ IMPORTANT EXTRAS ═══════════════════════════════ -->
+    <div id="important" style="display:none">
+
+      <p style="margin-bottom:16px">These are the distinctions that separate a developer who knows these principles from one who actually applies them correctly under pressure.</p>
+
+      <div class="section-title">1. DRY is about knowledge, not lines of code</div>
+      <div class="highlight-box warn">
+        <span class="important-tag">common mistake</span><br><br>
+        Two methods that contain the same three lines are not automatically a DRY violation. If those three lines represent two <em>different business concepts</em> that happen to look identical today, merging them creates a wrong abstraction. Example: <code>validateUserAge()</code> and <code>validateDriverLicenseAge()</code> both check <code>age &gt;= 18</code>. They should stay separate — they represent different rules that will diverge the moment the legal ages change independently.
+      </div>
+
+      <div class="section-title">2. The wrong abstraction is worse than duplication</div>
+      <div class="highlight-box danger">
+        <span class="important-tag">serious trap</span><br><br>
+        Sandi Metz coined this: <em>"duplication is far cheaper than the wrong abstraction."</em> When you extract a shared method or class too early — before you truly understand what varies and what is stable — you couple unrelated concepts. Later, when they diverge, you have to either keep adding conditionals to the shared code or break it apart at high cost. Prefer duplication that is honest over abstraction that lies about what the code represents.
+      </div>
+
+      <div class="section-title">3. YAGNI applies at every level of the stack</div>
+      <div class="highlight-box info">
+        Most developers think of YAGNI as a code-level principle. It applies equally to architecture. <strong>Examples of YAGNI at architecture level:</strong>
+        <ul style="padding-left:16px;margin-top:8px;line-height:1.8">
+          <li>Adding Kafka when all current flows are synchronous and the team of 3 devs has no event-driven requirements</li>
+          <li>Building a multi-tenant system from day one for a product with a single client</li>
+          <li>Designing a plugin system before knowing what plugins will be needed</li>
+          <li>Implementing CQRS before there is a read/write performance problem that justifies it</li>
+        </ul>
+      </div>
+
+      <div class="section-title">4. KISS does not mean "no abstraction"</div>
+      <div class="highlight-box info">
+        KISS is not an argument against well-named methods, clean interfaces, or separation of concerns. A service that delegates to a <code>DiscountPolicy</code> and an <code>OrderValidator</code> is simpler than one that does everything inline — because the intent is clearer. KISS targets <em>unnecessary</em> complexity, not <em>appropriate</em> structure. The question is always: does this complexity exist because the problem demands it, or because the developer was being clever?
+      </div>
+
+      <div class="section-title">5. These principles interact with SOLID</div>
+      <div class="highlight-box success">
+        KISS supports SRP: a class with a single responsibility is simpler to understand than one that does many things.<br><br>
+        DRY supports OCP: when knowledge lives in one place, extending behaviour means adding code, not hunting for duplicates to update.<br><br>
+        YAGNI directly opposes premature application of design patterns: you do not need an Abstract Factory if you have one concrete implementation. Add the pattern when you have two or more concrete cases that justify it.
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════ RESOURCES ═══════════════════════════════ -->
+    <div id="resources" style="display:none">
+
+      <div class="section-title">Primary Reading</div>
+
+      <div class="resource-row">
+        <div class="resource-icon">📖</div>
+        <div class="resource-info">
+          <div class="resource-title">
+            Martin Fowler — "Yagni"
+            <span class="resource-tag tag-free">Free</span>
+          </div>
+          <div class="resource-desc">
+            The definitive article on YAGNI by Fowler himself. Short, precise, and written from an architecture perspective. Covers the "presumptive feature" trap and the cost of building what you do not need. Required reading for this week.<br>
+            <a href="https://martinfowler.com/bliki/Yagni.html" target="_blank" style="color:#7dbef5;font-size:12px">martinfowler.com/bliki/Yagni.html</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="resource-row">
+        <div class="resource-icon">📖</div>
+        <div class="resource-info">
+          <div class="resource-title">
+            Martin Fowler — "Once And Only Once"
+            <span class="resource-tag tag-free">Free</span>
+          </div>
+          <div class="resource-desc">
+            Fowler's framing of DRY as a code-quality principle. Short wiki entry that reinforces the distinction between knowledge duplication and accidental code similarity.<br>
+            <a href="https://martinfowler.com/bliki/BeckDesignRules.html" target="_blank" style="color:#7dbef5;font-size:12px">martinfowler.com/bliki/BeckDesignRules.html</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="resource-row">
+        <div class="resource-icon">📖</div>
+        <div class="resource-info">
+          <div class="resource-title">
+            Sandi Metz — "The Wrong Abstraction"
+            <span class="resource-tag tag-free">Free</span>
+          </div>
+          <div class="resource-desc">
+            The most important thing you will read about DRY this week. Metz argues that premature DRY creates abstractions that are harder to fix than the original duplication. Changes how you think about when to extract shared code.<br>
+            <a href="https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction" target="_blank" style="color:#7dbef5;font-size:12px">sandimetz.com/blog/2016/1/20/the-wrong-abstraction</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="resource-row">
+        <div class="resource-icon">☕</div>
+        <div class="resource-info">
+          <div class="resource-title">
+            Baeldung — Clean Code with Java
+            <span class="resource-tag tag-free">Free</span>
+          </div>
+          <div class="resource-desc">
+            Solid overview of KISS, DRY, and related clean code principles with Java code examples. Good for reinforcing the concepts with hands-on snippets after reading Fowler and Metz.<br>
+            <a href="https://www.baeldung.com/java-clean-code" target="_blank" style="color:#7dbef5;font-size:12px">baeldung.com/java-clean-code</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="resource-row">
+        <div class="resource-icon">🎥</div>
+        <div class="resource-info">
+          <div class="resource-title">
+            Refactoring.Guru — Code Smells
+            <span class="resource-tag tag-free">Free</span>
+          </div>
+          <div class="resource-desc">
+            Visual catalogue of code smells that map directly to KISS/DRY/YAGNI violations. The "Bloaters", "Dispensables", and "Couplers" categories are directly relevant this week. Use it as a reference, not a full read.<br>
+            <a href="https://refactoring.guru/refactoring/smells" target="_blank" style="color:#7dbef5;font-size:12px">refactoring.guru/refactoring/smells</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="highlight-box info" style="margin-top:8px">
+        <strong>No Udemy course this week.</strong> KISS, DRY, and YAGNI are best learned through short, focused articles rather than a video course. The three Fowler/Metz articles above are the primary resource — they are short (15 min total) but dense with insight. Supplement with Baeldung for code examples.
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════ EXERCISE ═══════════════════════════════ -->
+    <div id="exercise" style="display:none">
+
+      <div class="highlight-box warn" style="margin-bottom:16px">
+        <strong>Instructions:</strong> Read the code below carefully. It contains violations of the principles studied this week. Do not look for hints — identify them yourself, then refactor. Push your solution to <code>q1/week-06-kiss-dry-yagni/</code> and submit it here for review.
+      </div>
+
+      <div class="section-title">Context</div>
+      <p>You are looking at a <code>NotificationService</code> inside a fictional order management system. The service is responsible for sending notifications to customers after order events. The code compiles and works correctly — but it has problems.</p>
+
+      <div class="code-label">NotificationService.java — find the problems</div>
+      <pre>import java.util.List;
+import java.util.stream.Collectors;
+
+public class NotificationService {
+
+    private final EmailClient    emailClient;
+    private final SmsClient      smsClient;
+    private final PushClient     pushClient;
+    private final AuditLogger    auditLogger;
+
+    public NotificationService(EmailClient emailClient,
+                                SmsClient smsClient,
+                                PushClient pushClient,
+                                AuditLogger auditLogger) {
+        this.emailClient = emailClient;
+        this.smsClient   = smsClient;
+        this.pushClient  = pushClient;
+        this.auditLogger = auditLogger;
+    }
+
+    public void notifyOrderConfirmed(Order order) {
+        List&lt;Customer&gt; eligible = order.getCustomers().stream()
+            .filter(c -&gt; c != null &amp;&amp; c.isActive() &amp;&amp; c.hasEmail()
+                         &amp;&amp; !c.isBlacklisted() &amp;&amp; c.getPreferences() != null
+                         &amp;&amp; c.getPreferences().allowsEmail())
+            .collect(Collectors.toList());
+
+        for (Customer customer : eligible) {
+            String msg = "[ORDER-" + order.getId().toString().toUpperCase()
+                .substring(0, 8) + "] " + "Your order has been confirmed. Total: R$"
+                + String.format("%.2f", order.getTotal());
+            emailClient.send(customer.getEmail(), "Order Confirmed", msg);
+            auditLogger.log("EMAIL_SENT", customer.getId(), order.getId());
+        }
+    }
+
+    public void notifyOrderShipped(Order order) {
+        List&lt;Customer&gt; eligible = order.getCustomers().stream()
+            .filter(c -&gt; c != null &amp;&amp; c.isActive() &amp;&amp; c.hasEmail()
+                         &amp;&amp; !c.isBlacklisted() &amp;&amp; c.getPreferences() != null
+                         &amp;&amp; c.getPreferences().allowsEmail())
+            .collect(Collectors.toList());
+
+        for (Customer customer : eligible) {
+            String msg = "[ORDER-" + order.getId().toString().toUpperCase()
+                .substring(0, 8) + "] " + "Your order has been shipped. Tracking: "
+                + order.getTrackingCode();
+            emailClient.send(customer.getEmail(), "Order Shipped", msg);
+            auditLogger.log("EMAIL_SENT", customer.getId(), order.getId());
+        }
+    }
+
+    public void notifyOrderDelivered(Order order) {
+        List&lt;Customer&gt; eligible = order.getCustomers().stream()
+            .filter(c -&gt; c != null &amp;&amp; c.isActive() &amp;&amp; c.hasEmail()
+                         &amp;&amp; !c.isBlacklisted() &amp;&amp; c.getPreferences() != null
+                         &amp;&amp; c.getPreferences().allowsEmail())
+            .collect(Collectors.toList());
+
+        for (Customer customer : eligible) {
+            String msg = "[ORDER-" + order.getId().toString().toUpperCase()
+                .substring(0, 8) + "] " + "Your order has been delivered. Thank you!";
+            emailClient.send(customer.getEmail(), "Order Delivered", msg);
+            auditLogger.log("EMAIL_SENT", customer.getId(), order.getId());
+        }
+    }
+
+    public void notifyByWhatsApp(Order order) {
+        // TODO: integrate with WhatsApp Business API when approved
+        // Estimated: Q3
+        throw new UnsupportedOperationException("WhatsApp integration not yet available");
+    }
+
+    public void scheduleNotificationForLater(Order order, java.time.LocalDateTime deliveryTime) {
+        // TODO: implement when we have a scheduling infrastructure
+        throw new UnsupportedOperationException("Scheduled notifications not yet implemented");
+    }
+
+    public void notifyBySmsWithFallback(Order order) {
+        // TODO: design fallback chain (SMS -> Push -> Email)
+        throw new UnsupportedOperationException("SMS with fallback not yet implemented");
+    }
+}</pre>
+
+      <div class="section-title" style="margin-top:16px">What to do</div>
+      <p>1. Identify each violation by principle name (KISS, DRY, or YAGNI). There is at least one clear violation of each principle.</p>
+      <p>2. Refactor the code. Your solution should be clean, readable, and honest about what it does.</p>
+      <p>3. Write a short README explaining your refactoring decisions — one paragraph per principle violation you found.</p>
+      <p>4. Push to <code>q1/week-06-kiss-dry-yagni/</code> on GitHub.</p>
+      <p>5. Submit your refactored version here for a Tech Lead–style code review.</p>
+
+      <button class="action-btn" onclick="sendPrompt('Here is my refactored NotificationService for the Week 6 exercise. Please review it as a Tech Lead would in a code review.')">Submit my refactored version for review →</button>
+
+    </div>
+
+    <!-- ═══════════════════════════════ SELF-TEST ═══════════════════════════════ -->
+    <div id="selftest" style="display:none">
+
+      <p style="margin-bottom:16px">Five questions. Answer each before revealing. If you cannot answer confidently, go back to the Concept or Important Extras tab.</p>
+
+      <div class="self-test-q">
+        <p>1. A colleague extracted a base class to avoid duplicating three lines of validation logic shared between <code>CreateOrderHandler</code> and <code>UpdateOrderHandler</code>. Six months later, the create rule changed and they had to add a boolean flag to the base class to control behaviour. What went wrong and which principle applies?</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">
+          This is the wrong abstraction problem — a DRY violation applied prematurely. The two handlers shared identical code at the time but represented different business rules. When create logic diverged, the shared abstraction started lying about what the code did. The fix is to inline the logic back into each handler and accept the duplication, or create two distinct policy objects with a common interface only if the concepts are genuinely related. The principle is DRY, but the failure is caused by extracting the abstraction before understanding whether the duplication is accidental or structural.
+        </div>
+      </div>
+
+      <div class="self-test-q">
+        <p>2. What is the difference between a KISS violation and a YAGNI violation? Give a one-sentence definition of each.</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">
+          <strong>KISS violation:</strong> code that is more complex than the problem it solves — unnecessary nesting, clever one-liners, over-engineered structure that makes it harder to read than a straightforward solution would be.<br><br>
+          <strong>YAGNI violation:</strong> code that exists for a requirement that has not been asked for yet — features, extension points, or abstractions built speculatively for a hypothetical future that may never arrive.
+        </div>
+      </div>
+
+      <div class="self-test-q">
+        <p>3. You are reviewing a PR. The developer added a <code>NotificationStrategy</code> interface with three implementations (<code>EmailStrategy</code>, <code>SmsStrategy</code>, <code>PushStrategy</code>) — but the current system only ever sends email. Is this a YAGNI violation, a good design decision, or does it depend? Explain.</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">
+          It depends — but it is most likely a YAGNI violation unless there is strong evidence that multiple channels are coming soon. The Strategy pattern is a valid choice when you have multiple concrete implementations and need to swap them at runtime. With only one implementation today, the interface adds indirection without benefit. However, if SMS and Push are confirmed requirements in the next sprint, the abstraction is justified — it avoids a larger refactor later. The rule of thumb: add the abstraction when you have the second concrete case, not before.
+        </div>
+      </div>
+
+      <div class="self-test-q">
+        <p>4. In your current Hexagonal Architecture codebase, where is the most likely place to find a DRY violation? Why?</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">
+          The most common place is between inbound adapters and application services. A REST controller that validates a request before calling the service, and a service that re-validates the same input independently, is duplicating the validation rule. In Hexagonal Architecture, the application service (use case) is the authoritative owner of business rules. Input validation that is about the domain — not about HTTP specifics — should live there, not in both layers. Another common location is when multiple use cases independently implement the same eligibility check instead of delegating to a shared domain policy.
+        </div>
+      </div>
+
+      <div class="self-test-q">
+        <p>5. "YAGNI means you should never design for extensibility." Is this statement true or false? Explain why.</p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">Reveal answer</button>
+        <div class="answer">
+          False. YAGNI means you should not build specific features or extension points for requirements that do not exist yet. It does not mean writing rigid, inflexible code. The correct interpretation is: write code that is easy to change, and change it when the real requirement arrives. Good practices like meaningful naming, small methods, and single responsibility make code easy to extend without pre-building the extensions. The distinction is: easy to extend (good) versus already extended for imagined futures (YAGNI violation).
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════ CHECKLIST ═══════════════════════════════ -->
+    <div id="checklist" style="display:none">
+
+      <div class="highlight-box info" style="margin-bottom:16px">
+        <strong>Block 2 start.</strong> This is your first week of Clean Code. The goal this week is not to memorize definitions — it is to start <em>seeing</em> KISS, DRY, and YAGNI violations in code you read and write. Active reading of the Fowler and Metz articles is more valuable than passive watching.
+      </div>
+
+      <div class="section-title">Reading</div>
+
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Read Martin Fowler's "Yagni" article (martinfowler.com) — short but essential</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Read Sandi Metz's "The Wrong Abstraction" — this will change how you think about DRY</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Skim the Baeldung clean code article for Java code examples to reinforce the concepts</span>
+      </div>
+
+      <div class="section-title">Understanding</div>
+
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Can you explain, in your own words, why DRY is about knowledge duplication and not line duplication?</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Can you describe a scenario where applying DRY prematurely makes the code worse?</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Can you identify at least one YAGNI violation you have seen at work (or in open source) without naming real company code?</span>
+      </div>
+
+      <div class="section-title">Exercise</div>
+
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Identified all violations in the <code>NotificationService</code> exercise independently</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Refactored the code and wrote a short README explaining your decisions</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Submitted refactored version for Tech Lead review and addressed all feedback</span>
+      </div>
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Pushed final solution to GitHub: <code>q1/week-06-kiss-dry-yagni/</code></span>
+      </div>
+
+      <div class="section-title">Block 1 LinkedIn Post</div>
+
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>
+          <strong>Write your Block 1 LinkedIn post.</strong> You have now completed all five SOLID principles. This is the first post of the roadmap — frame it as what you now understand differently about software design, not as a list of principles you studied. Collect the best insight sentence from each of Weeks 1–5 and synthesise them into a single practitioner perspective.
+        </span>
+      </div>
+
+      <div class="section-title">Week insight capture</div>
+
+      <div class="checklist-item">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <span>Write one sentence capturing your most useful or surprising insight from this week. Store it — it will feed the Block 2 LinkedIn post.</span>
+      </div>
+
+    </div>
+
+  </div><!-- end tab-content -->
+</div><!-- end card -->
+
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#tab-panel > div').forEach(d => d.style.display = 'none');
+  btn.classList.add('active');
+  document.getElementById(name).style.display = 'block';
+}
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+}
+function toggleAnswer(btn) {
+  const answer = btn.nextElementSibling;
+  if (answer.style.display === 'block') {
+    answer.style.display = 'none';
+    btn.textContent = 'Reveal answer';
+  } else {
+    answer.style.display = 'block';
+    btn.textContent = 'Hide answer';
+  }
+}
+function sendPrompt(text) {
+  if (window.parent && window.parent.postMessage) {
+    window.parent.postMessage({ type: 'sendPrompt', text }, '*');
+  }
+}
+</script>
+
+</body>
+</html>
